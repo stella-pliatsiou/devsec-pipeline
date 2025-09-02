@@ -1,45 +1,40 @@
 pipeline {
   agent any
   environment {
-    IMAGE = "myapp:${env.GIT_COMMIT}"
+    IMAGE = "myorg/devsecops-demo:${env.GIT_COMMIT ?: 'latest'}"
   }
   stages {
     stage('Checkout') {
       steps { checkout scm }
     }
-    stage('Build') {
+    stage('Deploy Juice Shop') {
       steps {
-        sh 'docker build -t ${IMAGE} .'
+        sh 'docker-compose -f docker-compose.test.yml up -d --build'
       }
     }
-    stage('Deploy to test') {
+    stage('ZAP Scan') {
       steps {
-        sh 'docker run -d --name test-app -p 3000:3000 ${IMAGE} || true'
-        sleep 8
+        sh '''
+          mkdir -p zap-reports
+          docker run --rm -v $(pwd)/zap-reports:/zap/wrk/:Z owasp/zap2docker-stable zap-baseline.py -t http://juice:3000 -r zap-report.html
+        '''
       }
     }
-    stage('Nmap scan') {
+    stage('Nmap & SQLMap') {
       steps {
-        sh 'docker run --rm instrumentisto/nmap -sV -p- 127.0.0.1 -oN nmap-results.txt || true'
-        archiveArtifacts artifacts: 'nmap-results.txt'
+        sh 'docker run --rm instrumentisto/nmap -p- --open -oN nmap.txt juice'
+        sh 'docker run --rm sqlmapproject/sqlmap -u "http://juice:3000/rest/products/search?q=1" --batch --output-dir=/tmp/sqlmap || true'
       }
     }
-    stage('ZAP full scan') {
+    stage('Archive Reports') {
       steps {
-        sh "docker run --rm -v ${env.WORKSPACE}:/zap/wrk/:rw owasp/zap2docker-stable zap-baseline.py -t http://host.docker.internal:3000 -r zap_report.html || true"
-        archiveArtifacts artifacts: 'zap_report.html'
-      }
-    }
-    stage('sqlmap') {
-      steps {
-        sh "docker run --rm -v ${env.WORKSPACE}:/zap/wrk/:rw sqlmapproject/sqlmap -u \"http://host.docker.internal:3000/search?q=1\" --batch --output-dir=/zap/wrk/sqlmap || true"
-        archiveArtifacts artifacts: 'sqlmap/**'
+        archiveArtifacts artifacts: 'zap-reports/**, nmap.txt, **/sqlmap/*.log', allowEmptyArchive: true
       }
     }
   }
   post {
     always {
-      sh 'docker rm -f test-app || true'
+      sh 'docker-compose -f docker-compose.test.yml down'
     }
   }
 }

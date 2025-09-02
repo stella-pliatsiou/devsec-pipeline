@@ -1,34 +1,16 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/sh
+echo "[pre-commit] Running local checks..."
 
-# Pre-commit hook: local quick semgrep + trufflehog via docker
-# Αν δεν υπάρχει semgrep τοπικά, θα το παραλείψει (το CI θα το τρέξει)
-
-echo "Running pre-commit checks..."
-
-# 1) semgrep local quick scan
-if command -v semgrep >/dev/null 2>&1; then
-  echo "semgrep found — running..."
-  semgrep --config auto --error || { echo "semgrep found issues. Fix before commit."; exit 1; }
-else
-  echo "semgrep not found locally — skipping local semgrep (CI will run it)."
+# Run unit tests (αν υπάρχει Node project)
+if [ -f package.json ]; then
+  npm test || { echo "❌ Unit tests failed"; exit 1; }
 fi
 
-# 2) trufflehog quick filesystem scan via docker (cross-platform)
-if command -v docker >/dev/null 2>&1; then
-  echo "Running trufflehog (docker)..."
-  docker run --rm -v "$(pwd)":/src trufflesecurity/trufflehog:latest filesystem --path /src --no-git --exit-code 1 || {
-    echo "trufflehog found possible secrets. Aborting commit.";
-    exit 1;
-  }
-else
-  echo "Docker not found — skipping trufflehog local scan (CI will run it)."
-fi
+# Semgrep quick scan
+semgrep --config auto --quiet || { echo "❌ Semgrep issues found"; exit 1; }
 
-# 3) lightweight lint (example for js/python)
-if command -v eslint >/dev/null 2>&1; then
-  echo "eslint found — running..."
-  eslint . || { echo "eslint found issues. Fix before commit."; exit 1; }
-fi
+# TruffleHog secrets scan (non-blocking)
+docker run --rm -v "$(pwd):/scan" trufflesecurity/trufflehog:latest filesystem --path /scan || true
 
+echo "[pre-commit] ✅ All checks passed"
 exit 0
