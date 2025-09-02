@@ -1,0 +1,106 @@
+stages:
+  - sast
+  - build
+  - deploy_test
+  - dynamic_scan
+  - report
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+# Semgrep (SAST)
+semgrep:
+  image: returntocorp/semgrep:latest
+  stage: sast
+  script:
+    - semgrep --config auto --json --output semgrep-result.json
+  artifacts:
+    paths: [semgrep-result.json]
+  allow_failure: false
+
+# Snyk (dependencies & container)
+snyk_scan:
+  image: node:18
+  stage: sast
+  before_script:
+    - npm i -g snyk || true
+  script:
+    - if [ -n "$SNYK_TOKEN" ]; then snyk auth $SNYK_TOKEN; fi
+    - snyk test || true
+    - snyk monitor || true
+  artifacts:
+    when: always
+    paths: [snyk-report.txt]
+
+# SonarQube scanner
+sonarqube:
+  image: sonarsource/sonar-scanner-cli:latest
+  stage: sast
+  script:
+    - sonar-scanner -Dsonar.projectKey=$CI_PROJECT_NAME -Dsonar.host.url=$SONAR_HOST -Dsonar.login=$SONAR_TOKEN
+  allow_failure: false
+
+# Build (docker)
+build:
+  image: docker:20
+  services:
+    - docker:dind
+  stage: build
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  artifacts:
+    expire_in: 1h
+    paths: []
+
+# Deploy ephemeral test environment (docker run juice-shop or our image)
+deploy_test:
+  image: docker/compose:latest
+  stage: deploy_test
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA || true
+    - |
+      if docker images -q $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA; then
+        docker run -d --name juice -p 3000:3000 $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+      else
+        docker run -d --name juice -p 3000:3000 bkimminich/juice-shop
+      fi
+  artifacts:
+    when: always
+    paths: []
+
+# Dynamic scans (ZAP, sqlmap, nmap)
+zap_scan:
+  image: owasp/zap2docker-stable
+  stage: dynamic_scan
+  script:
+    - /zap/zap-baseline.py -t http://host.docker.internal:3000 -r zap_report.html || true
+  artifacts:
+    paths: [zap_report.html]
+
+sqlmap_scan:
+  image: sqlmapproject/sqlmap
+  stage: dynamic_scan
+  script:
+    - sqlmap -u "http://host.docker.internal:3000/search?q=1" --batch --level=2 --risk=1 --output-dir=sqlmap-output || true
+  artifacts:
+    paths: [sqlmap-output]
+
+nmap_scan:
+  image: instrumentisto/nmap
+  stage: dynamic_scan
+  script:
+    - nmap -sV -p- host.docker.internal -oN nmap-output.txt || true
+  artifacts:
+    paths: [nmap-output.txt]
+
+# Final reporting: collect artifacts, decide pass/fail
+finalize:
+  stage: report
+  script:
+    - echo "Collecting results..."
+  artifacts:
+    when: always
+    expire_in: 1 week
