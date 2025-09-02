@@ -1,16 +1,13 @@
 #!/bin/sh
 echo "[pre-commit] Running local checks..."
 
-# Run unit tests (αν υπάρχει Node project)
 if [ -f package.json ]; then
   npm test || { echo "❌ Unit tests failed"; exit 1; }
 fi
 
-# Semgrep quick scan
 semgrep --config auto --quiet || { echo "❌ Semgrep issues found"; exit 1; }
 
-# TruffleHog secrets scan (non-blocking)
 docker run --rm -v "$(pwd):/scan" trufflesecurity/trufflehog:latest filesystem --path /scan || true
 
-echo "[pre-commit] ✅ All checks passed"
+echo "[pre-commit] ✅ OK"
 exit 0
