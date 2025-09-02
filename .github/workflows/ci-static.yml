@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # --- Python setup ---
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -18,9 +19,13 @@ jobs:
       - name: Install semgrep
         run: pip install semgrep
 
+      # --- Semgrep scan (UTF-8 fix) ---
       - name: Run semgrep
+        env:
+          PYTHONUTF8: 1
         run: semgrep --config auto --output semgrep-results.sarif
 
+      # --- Node.js setup ---
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -36,9 +41,11 @@ jobs:
           snyk auth $SNYK_TOKEN
           snyk test
 
+      # --- TruffleHog scan ---
       - name: TruffleHog scan
         run: docker run --rm -v "${{ github.workspace }}:/src" trufflesecurity/trufflehog:latest filesystem --path /src || true
 
+      # --- Trigger Jenkins dynamic scan ---
       - name: Trigger Jenkins job
         env:
           JENKINS_URL: ${{ secrets.JENKINS_URL }}
