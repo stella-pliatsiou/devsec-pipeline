@@ -8,6 +8,7 @@ jobs:
   static-analysis:
     runs-on: windows-latest
     steps:
+      # --- Checkout repo ---
       - uses: actions/checkout@v4
 
       # --- Python setup ---
@@ -25,7 +26,7 @@ jobs:
           PYTHONUTF8: 1
         run: semgrep --config auto --output semgrep-results.sarif
 
-      # --- Node.js setup ---
+           # --- Node.js setup ---
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
