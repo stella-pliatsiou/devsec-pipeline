@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+# Pre-push: μικρότερος έλεγχος πριν push — δεν τρέχουμε βαριά scans
+
+echo "Running pre-push quick checks..."
+
+# Optional: run basic tests
+if [ -f package.json ]; then
+  if command -v npm >/dev/null 2>&1; then
+    npm test || { echo "Tests failed. Aborting push."; exit 1; }
+  fi
+fi
+
+# You may add a small semgrep quick run here if you like
+if command -v semgrep >/dev/null 2>&1; then
+  semgrep --config auto --timeout 30 || { echo "semgrep quick found issues. Aborting push."; exit 1; }
+fi
+
+exit 0
