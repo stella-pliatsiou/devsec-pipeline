@@ -1,5 +1,5 @@
 #!/bin/sh
-echo "[pre-commit] Running local checks..."
+echo "[pre-commit] Local DevSecOps checks..."
 
 if [ -f package.json ]; then
   npm test || { echo "❌ Unit tests failed"; exit 1; }

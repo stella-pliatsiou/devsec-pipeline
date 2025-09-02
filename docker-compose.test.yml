@@ -1,7 +1,6 @@
-version: '3.7'
+version: '3'
 services:
   juice:
-    image: bkimminich/juice-shop:latest
+    image: bkimminich/juice-shop
     ports:
       - "3000:3000"
-    restart: unless-stopped
