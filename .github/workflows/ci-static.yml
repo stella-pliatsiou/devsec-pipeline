@@ -49,10 +49,10 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: snyk auth $env:SNYK_TOKEN
 
-      - name: Snyk test
+      - name: Snyk test with HTML output
         working-directory: vulnerable-app
         shell: pwsh
-        run: snyk test --json
+        run: snyk test --json | snyk-to-html -o snyk-report.html
 
       # --- TruffleHog scan ---
       - name: TruffleHog scan
