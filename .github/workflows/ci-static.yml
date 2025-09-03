@@ -73,3 +73,21 @@ jobs:
           JENKINS_TRIGGER_TOKEN: ${{ secrets.JENKINS_TRIGGER_TOKEN }}
         run: |
           curl -X POST "$JENKINS_URL/job/devsecops-dynamic/build?token=$JENKINS_TRIGGER_TOKEN" --user $JENKINS_USER:$JENKINS_API_TOKEN
+
+  dynamic-analysis:
+    runs-on: windows-latest
+    needs: static-analysis
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Nmap scan ---
+      - name: Nmap Scan
+        run: nmap -sV localhost || true
+
+      # --- SQLMap scan ---
+      - name: SQLMap Scan
+        run: sqlmap -u "http://localhost/vulnerable-endpoint" --batch || true
+
+      # --- OWASP ZAP Scan ---
+      - name: ZAP Baseline Scan
+        run: docker run -v "${{ github.workspace }}:/zap/wrk/:rw" owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080 || true       
