@@ -52,7 +52,7 @@ jobs:
       - name: Snyk test
         working-directory: vulnerable-app
         shell: pwsh
-        run: snyk test --json 
+        run: snyk test --json || true
 
       - name: Install snyk-to-html
         run: npm install -g snyk-to-html
