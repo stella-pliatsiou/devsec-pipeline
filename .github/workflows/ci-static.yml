@@ -36,7 +36,7 @@ jobs:
         run: npm install -g snyk
 
       - name: Debug workspace (optional)
-        run: dir /s
+        run: Get-ChildItem -Recurse | Select-Object FullName
 
       - name: Snyk test
         env:
