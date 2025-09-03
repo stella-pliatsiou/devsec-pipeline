@@ -35,6 +35,10 @@ jobs:
       - name: Install Snyk
         run: npm install -g snyk
 
+      - name: Install dependencies
+        working-directory: vulnerable-app
+        run: npm install
+
       - name: Debug workspace (optional)
         run: Get-ChildItem -Recurse | Select-Object FullName
 
