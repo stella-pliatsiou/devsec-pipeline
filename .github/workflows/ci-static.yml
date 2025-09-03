@@ -44,9 +44,10 @@ jobs:
 
       - name: Snyk test
         working-directory: vulnerable-app
+        shell: pwsh
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk test --json
+        run: snyk auth $env:SNYK_TOKEN; snyk test --json
 
       # --- TruffleHog scan ---
       - name: TruffleHog scan
