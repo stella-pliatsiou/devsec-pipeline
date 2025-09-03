@@ -43,9 +43,10 @@ jobs:
         run: Get-ChildItem -Recurse | Select-Object FullName
 
       - name: Snyk test
+        working-directory: vulnerable-app
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk test --file=vulnerable-app/package.json --json --token=$SNYK_TOKEN
+        run: snyk test --json
 
       # --- TruffleHog scan ---
       - name: TruffleHog scan
