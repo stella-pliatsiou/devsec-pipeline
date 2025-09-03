@@ -39,7 +39,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          snyk auth $SNYK_TOKEN
+          snyk test --org=stella-pliatsiou --token=$SNYK_TOKEN
           snyk test
 
       # --- TruffleHog scan ---
