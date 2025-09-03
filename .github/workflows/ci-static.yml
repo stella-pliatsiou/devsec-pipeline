@@ -42,12 +42,17 @@ jobs:
       - name: Debug workspace (optional)
         run: Get-ChildItem -Recurse | Select-Object FullName
 
-      - name: Snyk test
+      - name: Snyk auth
         working-directory: vulnerable-app
         shell: pwsh
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk auth $env:SNYK_TOKEN; snyk test --json
+        run: snyk auth $env:SNYK_TOKEN
+
+      - name: Snyk test
+        working-directory: vulnerable-app
+        shell: pwsh
+        run: snyk test --json
 
       # --- TruffleHog scan ---
       - name: TruffleHog scan
