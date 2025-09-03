@@ -26,7 +26,7 @@ jobs:
           PYTHONUTF8: 1
         run: semgrep --config auto --output semgrep-results.sarif
 
-           # --- Node.js setup ---
+      # --- Node.js setup ---
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -35,12 +35,13 @@ jobs:
       - name: Install Snyk
         run: npm install -g snyk
 
+      - name: Debug workspace (optional)
+        run: dir /s
+
       - name: Snyk test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          snyk test --org=stella-pliatsiou --token=$SNYK_TOKEN
-          snyk test
+        run: snyk test --file=vulnerable-app/package.json --json --token=$SNYK_TOKEN
 
       # --- TruffleHog scan ---
       - name: TruffleHog scan
