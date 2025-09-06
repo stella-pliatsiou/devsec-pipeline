@@ -81,18 +81,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Nmap on Windows
-        shell: powershell
-        run: choco install nmap -y
+       # --- Install Chocolatey packages ---
+      - name: Install Nmap
+        shell: pwsh
+        run: 
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+          choco install nmap -y
 
       # --- Nmap scan ---
       - name: Nmap Scan
-        run: nmap -sV localhost || true
+        shell: pwsh
+        run: 
+          try { nmap -sV localhost } catch { Write-Host "Nmap scan failed" }
 
       # --- SQLMap scan ---
       - name: SQLMap Scan
-        run: sqlmap -u "http://localhost/vulnerable-endpoint" --batch || true
+        shell: pwsh
+        run: 
+          try { pip install sqlmap; sqlmap -u "http://localhost/vulnerable-endpoint" --batch } catch { Write-Host "SQLMap scan failed" }
 
-      # --- OWASP ZAP Scan ---
-      - name: ZAP Baseline Scan
-        run: docker run -v "${{ github.workspace }}:/zap/wrk/:rw" owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080 || true       
+      # --- ZAP scan ---
+      - name: OWASP ZAP Baseline Scan
+        run: 
+          docker run -v "${{ github.workspace }}:/zap/wrk/:rw" owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080 || echo "ZAP scan failed"       
