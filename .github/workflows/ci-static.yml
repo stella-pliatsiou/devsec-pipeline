@@ -71,7 +71,7 @@ jobs:
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
           JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
           JENKINS_TRIGGER_TOKEN: ${{ secrets.JENKINS_TRIGGER_TOKEN }}
-        run:  curl -X POST "https://5f218a1c547a.ngrok-free.app/job/devsec-pipeline/build?token=***" --user "velti:1100f3e8fa586d715a4ec41b1bf1db6afe"
+        run:  curl -X POST "https://5f218a1c547a.ngrok-free.app/job/devsec-pipeline/build?JENKINS_TRIGGER_TOKEN=MYTOKEN123" --user "velti:1100f3e8fa586d715a4ec41b1bf1db6afe"
 
 
 
