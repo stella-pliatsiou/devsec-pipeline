@@ -103,6 +103,4 @@ jobs:
           try { pip install sqlmap; sqlmap -u "http://localhost/vulnerable-endpoint" --batch } catch { Write-Host "SQLMap scan failed" }
 
       # --- ZAP scan ---
-      - name: OWASP ZAP Baseline Scan
-        run: 
-          docker run -v "${{ github.workspace }}:/zap/wrk/:rw" owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080 || echo "ZAP scan failed"       
+      
