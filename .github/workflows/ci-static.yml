@@ -81,6 +81,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Nmap on Windows
+        run: choco install nmap -y
+
       # --- Nmap scan ---
       - name: Nmap Scan
         run: nmap -sV localhost || true
