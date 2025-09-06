@@ -102,5 +102,5 @@ jobs:
         run: 
           try { pip install sqlmap; sqlmap -u "http://localhost/vulnerable-endpoint" --batch } catch { Write-Host "SQLMap scan failed" }
 
-      # --- ZAP scan ---
+      
       
