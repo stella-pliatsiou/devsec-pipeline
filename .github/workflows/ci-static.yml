@@ -72,7 +72,8 @@ jobs:
           JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
           JENKINS_TRIGGER_TOKEN: ${{ secrets.JENKINS_TRIGGER_TOKEN }}
         run: |
-          curl -X POST "http://my-jenkins-server:8090/job/devsec-pipeline/build?token=***" --user "velti:1100f3e8fa586d715a4ec41b1bf1db6afe"
+          curl -X POST "${JENKINS_URL}/job/devsec-pipeline/build?token=${JENKINS_TRIGGER_TOKEN}" \
+          --user "${JENKINS_USER}:${JENKINS_API_TOKEN}"
 
 
 
