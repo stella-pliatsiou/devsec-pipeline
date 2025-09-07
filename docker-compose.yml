@@ -1,18 +1,23 @@
-version: '3.8'
 services:
-  app:
-    build: ./vulnerable-app
-    ports:
-      - "3000:3000"
   sonarqube:
     image: sonarqube:latest
+    container_name: sonarqube
     ports:
       - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+
   zaproxy:
-    image: owasp/zap2docker-weekly
+    image: owasp/zap2docker-weekly   # ✅ διορθωμένο image
     container_name: zaproxy
     ports:
       - "8081:8080"
     volumes:
       - ./reports:/zap/wrk
 
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
