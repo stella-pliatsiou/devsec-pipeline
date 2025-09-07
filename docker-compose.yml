@@ -1,4 +1,18 @@
+version: "3.8"
+
 services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8090:8090"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # για να μπορεί να τρέχει docker από μέσα
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+
   sonarqube:
     image: sonarqube:latest
     container_name: sonarqube
@@ -11,7 +25,7 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
 
   zaproxy:
-    image: ghcr.io/zaproxy/zaproxy:weekly   # ✅ σωστό image από GitHub Container Registry
+    image: ghcr.io/zaproxy/zaproxy:weekly
     container_name: zaproxy
     ports:
       - "8081:8080"
@@ -19,5 +33,6 @@ services:
       - ./reports:/zap/wrk
 
 volumes:
+  jenkins_home:
   sonarqube_data:
   sonarqube_extensions:
