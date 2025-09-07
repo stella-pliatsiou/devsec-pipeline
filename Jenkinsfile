@@ -1,8 +1,8 @@
 pipeline {
-    agent any
+    agent any  // ή agent { label 'windows' } αν θες συγκεκριμένο node
 
     environment {
-        SNYK_TOKEN = credentials('snyk-token')  // αν χρησιμοποιείς Snyk
+        SNYK_TOKEN = credentials('snyk-token')
     }
 
     stages {
@@ -14,58 +14,32 @@ pipeline {
 
         stage('Build') {
             steps {
-                node {
-                    powershell '''
-                        Write-Host "Building project..."
-                        # εδώ μπορείς να βάλεις το build script σου
-                    '''
-                }
+                powershell 'Write-Host "Building project..."'
             }
         }
 
         stage('Static Code Analysis') {
             steps {
-                node {
-                    powershell '''
-                        Write-Host "Running static code analysis..."
-                        # π.χ. npm install & npm run lint
-                    '''
-                }
+                powershell 'Write-Host "Running static code analysis..."'
             }
         }
 
         stage('Dynamic Analysis') {
             steps {
-                node {
-                    powershell '''
-                        Write-Host "Running dynamic analysis..."
-                        # π.χ. εκτέλεση tests ή Snyk scan
-                    '''
-                }
+                powershell 'Write-Host "Running dynamic analysis..."'
             }
         }
     }
 
     post {
         always {
-            node {
-                powershell '''
-                    Write-Host "Pipeline finished. Cleaning up workspace..."
-                    # Προαιρετικά: clean-up commands
-                '''
-            }
+            powershell 'Write-Host "Pipeline finished. Cleaning up workspace..."'
         }
-
         success {
-            node {
-                powershell 'Write-Host "✅ Pipeline completed successfully!"'
-            }
+            powershell 'Write-Host "✅ Pipeline completed successfully!"'
         }
-
         failure {
-            node {
-                powershell 'Write-Host "❌ Pipeline failed. Check logs for details."'
-            }
+            powershell 'Write-Host "❌ Pipeline failed. Check logs for details."'
         }
     }
 }
