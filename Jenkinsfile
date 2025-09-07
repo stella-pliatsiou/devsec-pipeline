@@ -2,25 +2,22 @@ pipeline {
     agent any
 
     environment {
-        // Βάλε εδώ το σωστό ID του Snyk token στο Jenkins Credentials
-        SNYK_TOKEN = credentials('snyk-token')
+        SNYK_TOKEN = credentials('snyk-token')  // βάλτο αν έχεις Snyk token
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/stella-pliatsiou/devsec-pipeline.git'
             }
         }
 
         stage('Static Analysis - Semgrep') {
             steps {
                 powershell '''
-                    $OutputEncoding = [System.Text.Encoding]::UTF8
-                    chcp 65001
-                    pip install --upgrade pip
+                    python -m pip install --upgrade pip
                     pip install semgrep
-                    semgrep --config=p/ci .
+                    semgrep --config=auto .
                 '''
             }
         }
@@ -28,9 +25,7 @@ pipeline {
         stage('Static Analysis - Snyk') {
             steps {
                 powershell '''
-                    $OutputEncoding = [System.Text.Encoding]::UTF8
-                    chcp 65001
-                    snyk auth $env:SNYK_TOKEN
+                    snyk auth %SNYK_TOKEN%
                     snyk test
                 '''
             }
@@ -39,10 +34,8 @@ pipeline {
         stage('Secrets Scan - Trufflehog') {
             steps {
                 powershell '''
-                    $OutputEncoding = [System.Text.Encoding]::UTF8
-                    chcp 65001
-                    pip install --upgrade trufflehog
-                    trufflehog filesystem --directory . --json
+                    pip install truffleHog
+                    trufflehog filesystem .
                 '''
             }
         }
@@ -50,9 +43,7 @@ pipeline {
         stage('Dynamic Analysis - Nmap') {
             steps {
                 powershell '''
-                    $OutputEncoding = [System.Text.Encoding]::UTF8
-                    chcp 65001
-                    nmap -sV localhost
+                    nmap -sV 127.0.0.1
                 '''
             }
         }
@@ -60,9 +51,7 @@ pipeline {
         stage('Dynamic Analysis - SQLMap') {
             steps {
                 powershell '''
-                    $OutputEncoding = [System.Text.Encoding]::UTF8
-                    chcp 65001
-                    sqlmap -u "http://localhost/vulnerable.php?id=1" --batch
+                    sqlmap -u "http://localhost/vuln.php?id=1" --batch
                 '''
             }
         }
@@ -70,9 +59,7 @@ pipeline {
         stage('Dynamic Analysis - OWASP ZAP') {
             steps {
                 powershell '''
-                    $OutputEncoding = [System.Text.Encoding]::UTF8
-                    chcp 65001
-                    "Εδώ βάζεις το ZAP command line για σκαν"
+                    "Εκτέλεσε OWASP ZAP εδώ"
                 '''
             }
         }
@@ -80,22 +67,21 @@ pipeline {
 
     post {
         always {
-            node {
-                powershell '''
-                    $OutputEncoding = [System.Text.Encoding]::UTF8
-                    chcp 65001
-                    Write-Host "Pipeline finished. Reports generated in workspace."
-                '''
-            }
+            powershell '''
+                $OutputEncoding = [System.Text.Encoding]::UTF8
+                chcp 65001
+                Write-Host "Pipeline finished. Reports generated in workspace."
+            '''
+        }
+        success {
+            powershell '''
+                Write-Host "✅ Pipeline completed successfully!"
+            '''
         }
         failure {
-            node {
-                powershell '''
-                    $OutputEncoding = [System.Text.Encoding]::UTF8
-                    chcp 65001
-                    Write-Host "⚠️ Some stages failed."
-                '''
-            }
+            powershell '''
+                Write-Host "❌ Pipeline failed. Check logs for errors."
+            '''
         }
     }
 }
