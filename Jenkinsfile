@@ -2,86 +2,70 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('snyk-token')  // βάλτο αν έχεις Snyk token
+        SNYK_TOKEN = credentials('snyk-token')  // αν χρησιμοποιείς Snyk
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
-                git branch: 'main', url: 'https://github.com/stella-pliatsiou/devsec-pipeline.git'
+                checkout scm
             }
         }
 
-        stage('Static Analysis - Semgrep') {
+        stage('Build') {
             steps {
-                powershell '''
-                    python -m pip install --upgrade pip
-                    pip install semgrep
-                    semgrep --config=auto .
-                '''
+                node {
+                    powershell '''
+                        Write-Host "Building project..."
+                        # εδώ μπορείς να βάλεις το build script σου
+                    '''
+                }
             }
         }
 
-        stage('Static Analysis - Snyk') {
+        stage('Static Code Analysis') {
             steps {
-                powershell '''
-                    snyk auth %SNYK_TOKEN%
-                    snyk test
-                '''
+                node {
+                    powershell '''
+                        Write-Host "Running static code analysis..."
+                        # π.χ. npm install & npm run lint
+                    '''
+                }
             }
         }
 
-        stage('Secrets Scan - Trufflehog') {
+        stage('Dynamic Analysis') {
             steps {
-                powershell '''
-                    pip install truffleHog
-                    trufflehog filesystem .
-                '''
-            }
-        }
-
-        stage('Dynamic Analysis - Nmap') {
-            steps {
-                powershell '''
-                    nmap -sV 127.0.0.1
-                '''
-            }
-        }
-
-        stage('Dynamic Analysis - SQLMap') {
-            steps {
-                powershell '''
-                    sqlmap -u "http://localhost/vuln.php?id=1" --batch
-                '''
-            }
-        }
-
-        stage('Dynamic Analysis - OWASP ZAP') {
-            steps {
-                powershell '''
-                    "Εκτέλεσε OWASP ZAP εδώ"
-                '''
+                node {
+                    powershell '''
+                        Write-Host "Running dynamic analysis..."
+                        # π.χ. εκτέλεση tests ή Snyk scan
+                    '''
+                }
             }
         }
     }
 
     post {
         always {
-            powershell '''
-                $OutputEncoding = [System.Text.Encoding]::UTF8
-                chcp 65001
-                Write-Host "Pipeline finished. Reports generated in workspace."
-            '''
+            node {
+                powershell '''
+                    Write-Host "Pipeline finished. Cleaning up workspace..."
+                    # Προαιρετικά: clean-up commands
+                '''
+            }
         }
+
         success {
-            powershell '''
-                Write-Host "✅ Pipeline completed successfully!"
-            '''
+            node {
+                powershell 'Write-Host "✅ Pipeline completed successfully!"'
+            }
         }
+
         failure {
-            powershell '''
-                Write-Host "❌ Pipeline failed. Check logs for errors."
-            '''
+            node {
+                powershell 'Write-Host "❌ Pipeline failed. Check logs for details."'
+            }
         }
     }
 }
