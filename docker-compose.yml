@@ -12,6 +12,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock  # για να μπορεί να τρέχει docker από μέσα
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - JENKINS_USER: admin
+      - JENKINS_PASS: admin123
 
   sonarqube:
     image: sonarqube:latest
