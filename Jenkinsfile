@@ -2,27 +2,35 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('SNYK_TOKEN')  // Secret για Snyk
+        SNYK_TOKEN = credentials('snyk-token') // το credential που έχεις στο Jenkins
     }
 
     stages {
+
         stage('Checkout SCM') {
             steps {
-                checkout scm
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/stella-pliatsiou/devsec-pipeline.git',
+                        credentialsId: '5937ce1d-8203-44e0-8a4a-797403e2649f'
+                    ]]
+                ])
             }
         }
 
         stage('Static Analysis - Semgrep') {
             steps {
                 powershell '''
-                # Χρησιμοποιούμε UTF-8 encoding για να αποφύγουμε Unicode σφάλματα
+                # Force UTF-8 for PowerShell and console
                 $OutputEncoding = [System.Text.Encoding]::UTF8
+                chcp 65001
 
                 python -m pip install --upgrade pip
                 python -m pip install semgrep --upgrade
 
-                # Εκτέλεση Semgrep
-                semgrep --config auto --output semgrep-results.sarif
+                # Τρέξε Semgrep και γράψε output σε αρχείο UTF-8
+                semgrep --config auto --output semgrep-results.sarif --json || exit 0
                 '''
             }
         }
@@ -31,13 +39,11 @@ pipeline {
             steps {
                 powershell '''
                 $OutputEncoding = [System.Text.Encoding]::UTF8
+                chcp 65001
 
-                npm install -g snyk
-                cd vulnerable-app
-                snyk auth $env:SNYK_TOKEN
-                snyk test --json || echo "Snyk test failed"
-                npm install -g snyk-to-html
-                snyk test --json | snyk-to-html -o snyk-report.html
+                pip install snyk --upgrade
+                snyk auth %SNYK_TOKEN%
+                snyk test --json > snyk-results.json || exit 0
                 '''
             }
         }
@@ -46,8 +52,10 @@ pipeline {
             steps {
                 powershell '''
                 $OutputEncoding = [System.Text.Encoding]::UTF8
+                chcp 65001
 
-                docker run --rm -v "${PWD}:/src" trufflesecurity/trufflehog:latest filesystem --path /src || echo "Trufflehog scan failed"
+                pip install trufflehog --upgrade
+                trufflehog filesystem . --json > trufflehog-results.json || exit 0
                 '''
             }
         }
@@ -56,9 +64,9 @@ pipeline {
             steps {
                 powershell '''
                 $OutputEncoding = [System.Text.Encoding]::UTF8
+                chcp 65001
 
-                choco install nmap -y
-                nmap -sV localhost || echo "Nmap scan failed"
+                nmap -oX nmap-results.xml localhost || exit 0
                 '''
             }
         }
@@ -67,9 +75,9 @@ pipeline {
             steps {
                 powershell '''
                 $OutputEncoding = [System.Text.Encoding]::UTF8
+                chcp 65001
 
-                python -m pip install sqlmap --upgrade
-                sqlmap -u "http://localhost/vulnerable-endpoint" --batch || echo "SQLMap scan failed"
+                sqlmap -u "http://localhost/vulnerable.php?id=1" --batch --output-dir=sqlmap-results || exit 0
                 '''
             }
         }
@@ -78,8 +86,10 @@ pipeline {
             steps {
                 powershell '''
                 $OutputEncoding = [System.Text.Encoding]::UTF8
+                chcp 65001
 
-                docker run -v "${PWD}:/zap/wrk/:rw" owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080 || echo "ZAP scan failed"
+                zap-cli status || exit 0
+                zap-cli quick-scan http://localhost > zap-results.txt || exit 0
                 '''
             }
         }
@@ -87,13 +97,16 @@ pipeline {
 
     post {
         always {
-            powershell '$OutputEncoding = [System.Text.Encoding]::UTF8; echo "Pipeline finished (reports generated)."'
-        }
-        success {
-            powershell 'echo "✅ Build succeeded!"'
+            powershell '''
+            $OutputEncoding = [System.Text.Encoding]::UTF8
+            chcp 65001
+            Write-Host "Pipeline finished. Reports generated in workspace."
+            '''
         }
         failure {
-            powershell 'echo "❌ Build failed!"'
+            powershell '''
+            Write-Host "⚠️ Some stages failed, but pipeline continued."
+            '''
         }
     }
 }
