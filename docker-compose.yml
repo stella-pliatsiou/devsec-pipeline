@@ -11,7 +11,7 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
 
   zaproxy:
-    image: owasp/zap2docker-weekly   # ✅ διορθωμένο image
+    image: ghcr.io/zaproxy/zaproxy:weekly   # ✅ σωστό image από GitHub Container Registry
     container_name: zaproxy
     ports:
       - "8081:8080"
