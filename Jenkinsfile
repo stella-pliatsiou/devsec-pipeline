@@ -15,6 +15,7 @@ pipeline {
         stage('Static Analysis - Semgrep') {
             steps {
                 powershell '''
+                $OutputEncoding = [System.Text.Encoding]::UTF8
                 python -m pip install --upgrade pip
                 python -m pip install semgrep
                 semgrep --config auto --output semgrep-results.sarif
