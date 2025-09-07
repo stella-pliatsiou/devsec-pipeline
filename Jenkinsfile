@@ -15,8 +15,8 @@ pipeline {
         stage('Static Analysis - Semgrep') {
             steps {
                 powershell '''
-                pip install --upgrade pip
-                pip install semgrep
+                python -m pip install --upgrade pip
+                python -m pip install semgrep
                 semgrep --config auto --output semgrep-results.sarif
                 '''
             }
