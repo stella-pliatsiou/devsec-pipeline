@@ -1,13 +1,8 @@
-#!/bin/sh
-echo "[pre-commit] Local DevSecOps checks..."
-
-if [ -f package.json ]; then
-  npm test || { echo "❌ Unit tests failed"; exit 1; }
+#!/bin/bash
+echo "Running pre-commit hook..."
+trufflehog git file://. --only-verified
+if [ $? -ne 0 ]; then
+  echo "Trufflehog found secrets! Commit rejected."
+  exit 1
 fi
-
-semgrep --config auto --quiet || { echo "❌ Semgrep issues found"; exit 1; }
-
-docker run --rm -v "$(pwd):/scan" trufflesecurity/trufflehog:latest filesystem --path /scan || true
-
-echo "[pre-commit] ✅ OK"
-exit 0
+echo "Pre-commit checks passed."

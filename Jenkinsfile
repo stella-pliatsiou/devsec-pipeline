@@ -1,45 +1,53 @@
 pipeline {
-    agent any  // ή agent { label 'windows' } αν θες συγκεκριμένο node
-
-    environment {
-        SNYK_TOKEN = credentials('snyk-token')
-    }
+    agent any
 
     stages {
-        stage('Checkout SCM') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-
-        stage('Build') {
+        stage('Snyk Security Scan') {
+            agent { label 'docker' }
             steps {
-                powershell 'Write-Host "Building project..."'
+                sh 'snyk test'
             }
         }
-
-        stage('Static Code Analysis') {
+        stage('SonarQube Analysis') {
+            agent { label 'docker' }
             steps {
-                powershell 'Write-Host "Running static code analysis..."'
+                sh 'sonar-scanner'
             }
         }
-
-        stage('Dynamic Analysis') {
+        stage('Semgrep Scan') {
+            agent { label 'docker' }
             steps {
-                powershell 'Write-Host "Running dynamic analysis..."'
+                sh 'semgrep --config auto .'
             }
         }
-    }
-
-    post {
-        always {
-            powershell 'Write-Host "Pipeline finished. Cleaning up workspace..."'
+        stage('Trufflehog Secret Scan') {
+            agent { label 'docker' }
+            steps {
+                sh 'trufflehog git file://. --only-verified'
+            }
         }
-        success {
-            powershell 'Write-Host "✅ Pipeline completed successfully!"'
+        stage('Dynamic Scan with Nmap') {
+            agent { label 'docker' }
+            steps {
+                sh 'nmap -sV localhost'
+            }
         }
-        failure {
-            powershell 'Write-Host "❌ Pipeline failed. Check logs for details."'
+        stage('Dynamic Scan with SQLMap') {
+            agent { label 'docker' }
+            steps {
+                sh 'sqlmap -u "http://localhost:3000" --batch'
+            }
+        }
+        stage('Dynamic Scan with OWASP ZAP') {
+            agent { label 'docker' }
+            steps {
+                sh 'zap-baseline.py -t http://localhost:3000 -r zap_report.html'
+            }
         }
     }
 }

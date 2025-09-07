@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  app:
+    build: ./vulnerable-app
+    ports:
+      - "3000:3000"
+  sonarqube:
+    image: sonarqube:latest
+    ports:
+      - "9000:9000"
+  zaproxy:
+    image: owasp/zap2docker-stable
+    ports:
+      - "8080:8080"

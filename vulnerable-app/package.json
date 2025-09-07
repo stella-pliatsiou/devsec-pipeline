@@ -1,15 +1,12 @@
 {
-  "name": "dummy-vulnerable-app",
+  "name": "vulnerable-app",
   "version": "1.0.0",
-  "description": "Dummy Node.js app with vulnerabilities",
-  "main": "index.js",
+  "description": "A deliberately vulnerable Node.js app for DevSecOps pipeline testing",
+  "main": "app.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node app.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "lodash": "4.17.4",          
-    "sqlite3": "^5.1.6"
+    "express": "^4.17.1"
   }
 }
-
