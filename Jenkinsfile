@@ -55,10 +55,8 @@ pipeline {
 
         stage('ZAP Scan') {
             steps {
-                sh """
-                    docker run --rm -v \$(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:weekly \
-                    zap-baseline.py -t http://host.docker.internal:8080 -r zap_report.html || true
-                """
+                sh 'docker build -t vulnerable-app ./vulnerable-app'
+                sh 'docker run -d --name vulnerable-app -p 3000:3000 vulnerable-app'
             }
         }
     }
