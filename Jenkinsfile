@@ -1,53 +1,55 @@
 pipeline {
     agent any
 
+    environment {
+        SONARQUBE = 'SonarQube' // Το όνομα που έδωσες στο Jenkins για SonarQube
+        SNYK_TOKEN = credentials('SNYK_TOKEN') // Αν έχεις προσθέσει το Snyk token στο Jenkins credentials
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/stella-pliatsiou/devsec-pipeline.git'
             }
         }
-        stage('Snyk Security Scan') {
-            agent { label 'docker' }
+
+        stage('SonarQube Scan') {
             steps {
-                sh 'snyk test'
+                withSonarQubeEnv(SONARQUBE) {
+                    sh 'sonar-scanner'
+                }
             }
         }
-        stage('SonarQube Analysis') {
-            agent { label 'docker' }
+
+        stage('Snyk Scan') {
             steps {
-                sh 'sonar-scanner'
+                sh 'docker run --rm -e SNYK_TOKEN=$SNYK_TOKEN -v $PWD:/app snyk/snyk:docker test'
             }
         }
+
         stage('Semgrep Scan') {
-            agent { label 'docker' }
             steps {
-                sh 'semgrep --config auto .'
+                sh 'docker run --rm -v $PWD:/src returntocorp/semgrep semgrep --config=p/ci'
             }
         }
-        stage('Trufflehog Secret Scan') {
-            agent { label 'docker' }
+
+        stage('TruffleHog Scan') {
             steps {
-                sh 'trufflehog git file://. --only-verified'
+                sh 'docker run --rm -v $PWD:/code trufflesecurity/trufflehog git https://github.com/stella-pliatsiou/devsec-pipeline.git'
             }
         }
-        stage('Dynamic Scan with Nmap') {
-            agent { label 'docker' }
+
+        stage('ZAP Scan') {
             steps {
-                sh 'nmap -sV localhost'
+                sh 'docker run --rm -v $PWD/reports:/zap/wrk -t owasp/zap2docker-stable zap-baseline.py -t http://host.docker.internal:8080'
             }
         }
-        stage('Dynamic Scan with SQLMap') {
-            agent { label 'docker' }
-            steps {
-                sh 'sqlmap -u "http://localhost:3000" --batch'
-            }
-        }
-        stage('Dynamic Scan with OWASP ZAP') {
-            agent { label 'docker' }
-            steps {
-                sh 'zap-baseline.py -t http://localhost:3000 -r zap_report.html'
-            }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'reports/**/*.*', allowEmptyArchive: true
         }
     }
 }
