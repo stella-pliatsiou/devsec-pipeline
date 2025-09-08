@@ -1,13 +1,11 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+const _ = require('lodash');
 
-// Vulnerable endpoint (SQL injection simulation)
-app.get('/user', (req, res) => {
-  const id = req.query.id;
-  res.send(`You requested user id: ${id}`);
+app.get('/', (req, res) => {
+  // deliberately insecure
+  const name = req.query.name || "Guest";
+  res.send("Hello " + name); // XSS risk
 });
 
-app.listen(port, () => {
-  console.log(`Vulnerable app listening at http://localhost:${port}`);
-});
+app.listen(3000, () => console.log("App running on http://localhost:3000"));
