@@ -2,68 +2,75 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('SNYK_TOKEN')  // Βάλε το όνομα του secret από Jenkins credentials
+        SNYK_TOKEN = credentials('SNYK_TOKEN') // Βάλε εδώ το Jenkins Credential ID για το Snyk token
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/stella-pliatsiou/devsec-pipeline.git'
+                // Κάνουμε clean checkout για να αποφύγουμε corrupted workspace
+                deleteDir()
+                git branch: 'main', url: 'https://github.com/stella-pliatsiou/devsec-pipeline.git'
             }
         }
 
         stage('SonarQube Scan') {
             steps {
-                withSonarQubeEnv('SonarQube') {   // Το όνομα που έδωσες στο Jenkins → SonarQube servers
-                    script {
-                        def scannerHome = tool 'SonarScanner'  // Το όνομα από Manage Jenkins → Tools
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=devsec-pipeline \
-                            -Dsonar.sources=.
-                        """
-                    }
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        docker run --rm \
+                        -v $PWD:/usr/src \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.projectKey=devsec-pipeline \
+                        -Dsonar.sources=/usr/src
+                    '''
                 }
             }
         }
 
         stage('Snyk Scan') {
             steps {
-                sh """
-                    snyk auth ${SNYK_TOKEN}
-                    snyk test || true
-                """
+                sh '''
+                    docker run --rm -e SNYK_TOKEN=$SNYK_TOKEN -v $PWD:/app snyk/snyk-cli test /app
+                '''
             }
         }
 
         stage('Semgrep Scan') {
             steps {
-                sh """
-                    semgrep --config=auto . || true
-                """
+                sh '''
+                    docker run --rm -v $PWD:/src returntocorp/semgrep semgrep --config=p/ci /src
+                '''
             }
         }
 
         stage('TruffleHog Scan') {
             steps {
-                sh """
-                    trufflehog git https://github.com/stella-pliatsiou/devsec-pipeline.git --json || true
-                """
+                sh '''
+                    docker run --rm -v $PWD:/repo trufflesecurity/trufflehog git https://github.com/stella-pliatsiou/devsec-pipeline.git
+                '''
             }
         }
 
         stage('ZAP Scan') {
             steps {
-                sh 'docker build -t vulnerable-app ./vulnerable-app'
-                sh 'docker run -d --name vulnerable-app -p 3000:3000 vulnerable-app'
+                sh '''
+                    docker run --rm -v $PWD:/zap/wrk -t owasp/zap2docker-weekly zap-baseline.py -t http://host.docker.internal:8000 -r zap_report.html
+                '''
             }
         }
     }
 
     post {
         always {
-            archiveArtifacts artifacts: '**/*.html', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/zap_report.html', allowEmptyArchive: true
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
