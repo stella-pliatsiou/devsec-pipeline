@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('snyk-token')  // Βάλε το όνομα του secret από Jenkins credentials
+        SNYK_TOKEN = credentials('SNYK_TOKEN')  // Βάλε το όνομα του secret από Jenkins credentials
     }
 
     stages {
