@@ -17,7 +17,7 @@ pipeline {
         stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv(SONARQUBE) {
-                    sh 'sonar-scanner'
+                    sh 'sonar-scanner -Dsonar.projectKey=devsec-pipeline -Dsonar.sources=.'
                 }
             }
         }
