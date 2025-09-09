@@ -8,12 +8,12 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
+       stage('Checkout') {
             steps {
-                deleteDir()
-                git branch: 'main', url: 'https://github.com/stella-pliatsiou/devsec-pipeline.git'
+             checkout scm
             }
-        }
+       }
+
 
         stage('SonarQube Scan') {
             steps {
