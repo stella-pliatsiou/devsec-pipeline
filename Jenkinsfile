@@ -11,7 +11,7 @@ pipeline {
             steps {
                 // Καθαρό checkout
                 deleteDir()
-                git branch: 'main', url: 'https://github.com/stella-pliatsiou/devsec-pipeline.git'
+                git branch: 'main', url: 'http://github.com/stella-pliatsiou/devsec-pipeline.git'
             }
         }
 
@@ -48,7 +48,7 @@ pipeline {
         stage('TruffleHog Scan') {
             steps {
                 sh '''
-                docker run --rm -v $PWD:/repo trufflesecurity/trufflehog git https://github.com/stella-pliatsiou/devsec-pipeline.git
+                docker run --rm -v $PWD:/repo trufflesecurity/trufflehog git http://github.com/stella-pliatsiou/devsec-pipeline.git
                 '''
             }
         }
