@@ -36,7 +36,9 @@ services:
       - "8081:8080"
     volumes:
       - ./reports:/zap/wrk
-
+networks:
+  devsec:
+    driver: bridge
 volumes:
   jenkins_home:
   sonarqube_data:
