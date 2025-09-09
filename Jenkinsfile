@@ -2,29 +2,22 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('SNYK_TOKEN') // Jenkins Credential ID για Snyk
+        SNYK_TOKEN = credentials('SNYK_TOKEN')   // Jenkins Credential ID για Snyk
         SONAR_TOKEN = credentials('SONAR_TOKEN') // Jenkins Credential ID για SonarQube
     }
 
     stages {
 
-       stage('Checkout') {
-            steps {
-             checkout scm
-            }
-       }
-
-
         stage('SonarQube Scan') {
             steps {
                 sh '''
                     docker run --rm \
-                    -e SONAR_HOST_URL=http://sonarqube:9000 \
-                    -e SONAR_TOKEN=$SONAR_TOKEN \
-                    -v $PWD:/usr/src \
-                    sonarsource/sonar-scanner-cli \
-                    -Dsonar.projectKey=devsec-pipeline \
-                    -Dsonar.sources=/usr/src
+                        -e SONAR_HOST_URL=http://sonarqube:9000 \
+                        -e SONAR_TOKEN=$SONAR_TOKEN \
+                        -v $PWD:/usr/src \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.projectKey=devsec-pipeline \
+                        -Dsonar.sources=/usr/src
                 '''
             }
         }
@@ -33,9 +26,9 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm \
-                    -e SNYK_TOKEN=$SNYK_TOKEN \
-                    -v $PWD:/app \
-                    snyk/snyk-cli test /app
+                        -e SNYK_TOKEN=$SNYK_TOKEN \
+                        -v $PWD:/app \
+                        snyk/snyk-cli test /app
                 '''
             }
         }
@@ -44,8 +37,8 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm \
-                    -v $PWD:/src \
-                    returntocorp/semgrep semgrep --config=p/ci /src
+                        -v $PWD:/src \
+                        returntocorp/semgrep semgrep --config=p/ci /src
                 '''
             }
         }
@@ -54,8 +47,8 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm \
-                    -v $PWD:/repo \
-                    trufflesecurity/trufflehog git https://github.com/stella-pliatsiou/devsec-pipeline.git
+                        -v $PWD:/repo \
+                        trufflesecurity/trufflehog git https://github.com/stella-pliatsiou/devsec-pipeline.git
                 '''
             }
         }
@@ -64,10 +57,10 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm \
-                    -v $PWD:/zap/wrk \
-                    -t owasp/zap2docker-weekly zap-baseline.py \
-                    -t http://host.docker.internal:8000 \
-                    -r zap_report.html
+                        -v $PWD:/zap/wrk \
+                        -t owasp/zap2docker-weekly zap-baseline.py \
+                        -t http://host.docker.internal:8000 \
+                        -r zap_report.html
                 '''
             }
         }
