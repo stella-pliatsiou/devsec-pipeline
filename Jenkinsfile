@@ -35,7 +35,7 @@ pipeline {
                     docker run --rm \
                     -e SNYK_TOKEN=$SNYK_TOKEN \
                     -v $PWD:/app \
-                    snyk/snyk-cli:docker test /app
+                    snyk/snyk-cli:2 test /app
                 '''
             }
         }
