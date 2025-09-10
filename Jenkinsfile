@@ -41,8 +41,8 @@ pipeline {
                 # Run Snyk, δίνουμε ακριβώς το path του package.json
                 docker run --rm \
                 -e SNYK_TOKEN=$SNYK_TOKEN \
-                -v $PWD:/app \
-                snyk/snyk-cli:docker test --file=/app/package.json
+                -v /var/jenkins_home/workspace/Pipeline:/project \
+                snyk/snyk-cli:docker test --file=/project/app/package.json
             '''
     }
         }
