@@ -34,22 +34,17 @@ pipeline {
 
         stage('Snyk Scan') {
             steps {
-                script {
-            // Εκτύπωση του workspace για να δούμε που βρίσκεται το package.json
-            sh 'echo "Jenkins workspace: $WORKSPACE"'
-            sh 'ls -l $WORKSPACE/app'
+                sh '''
+                # Pull the latest image
+                docker pull snyk/snyk-cli:docker
 
-            // Pull το τελευταίο Snyk image
-            sh 'docker pull snyk/snyk-cli:docker'
-
-            // Εκτέλεση Snyk scan
-            sh """
+                # Run Snyk, δίνουμε ακριβώς το path του package.json
                 docker run --rm \
                 -e SNYK_TOKEN=$SNYK_TOKEN \
-                -v ${WORKSPACE}/app:/project \
+                -v /var/jenkins_home/workspace/Pipeline/app:/project \
                 snyk/snyk-cli:docker test --file=/project/package.json
-            """
-        }
+            '''
+    }
         }
 
         stage('Semgrep Scan') {
