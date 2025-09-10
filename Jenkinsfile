@@ -39,7 +39,7 @@ pipeline {
                     sh """
                         docker pull snyk/snyk-cli:docker
                         docker run --rm \
-                            -e SNYK_TOKEN=squ_169c2a5eb9bd06e6941a1aec79a09315e0a6db3b \
+                            -e SNYK_TOKEN=1a5502d0-453f-4777-9e63-38bf362e8a8a \
                             -v ${workspacePath}:Pipeline/app \
                             snyk/snyk-cli:docker test /app
                     """
