@@ -40,7 +40,7 @@ pipeline {
                         docker pull snyk/snyk-cli:docker
                         docker run --rm \
                             -e SNYK_TOKEN=1a5502d0-453f-4777-9e63-38bf362e8a8a \
-                            -v ${workspacePath}:/Pipeline/app \
+                            -v /var/jenkins_home/workspace/Pipeline/app:/project \
                             snyk/snyk-cli:docker test /app
                     """
                 }
