@@ -34,17 +34,17 @@ pipeline {
 
         stage('Snyk Scan') {
             steps {
-                script {
-                    def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
-                    sh """
-                        docker pull snyk/snyk-cli:docker
-                        docker run --rm \
-                            -e SNYK_TOKEN=85cca7e0-a75e-487d-afbf-233fbe192e64 \
-                            -v /var/jenkins_home/workspace/Pipeline/app:/project \
-                            snyk/snyk-cli:docker test --file=/project/package.json
-                    """
-                }
-            }
+                sh '''
+                # Pull the latest image
+                docker pull snyk/snyk-cli:docker
+
+                # Run Snyk, δίνουμε ακριβώς το path του package.json
+                docker run --rm \
+                -e SNYK_TOKEN=$SNYK_TOKEN \
+                -v $PWD:/project \
+                snyk/snyk-cli:docker test --file=/project/app/package.json
+            '''
+    }
         }
 
         stage('Semgrep Scan') {
