@@ -18,7 +18,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm \
-                    -e SONAR_HOST_URL=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
+                    -e SONAR_HOST_URL=http://host.docker.internal:9000 \
                     -e SONAR_TOKEN=$SONAR_TOKEN \
                     -v $PWD:/usr/src \
                     sonarsource/sonar-scanner-cli \
