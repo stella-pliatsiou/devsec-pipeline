@@ -16,18 +16,21 @@ pipeline {
 
         stage('SonarQube Scan') {
             steps {
-                sh '''
+                script {
+                    def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
+                sh """
                     docker run --rm \
                     --add-host=host.docker.internal:host-gateway \
-                    -e SONAR_HOST_URL=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
+                    -e SONAR_HOST_URL=http://host.docker.internal:9000 \
                     -e SONAR_TOKEN=squ_169c2a5eb9bd06e6941a1aec79a09315e0a6db3b \
-                    -v /var/jenkins_home/workspace/Pipeline:/usr/src \
+                    -v ${workspacePath}:/usr/src \
                     sonarsource/sonar-scanner-cli \
                     -Dsonar.projectKey=devsec-pipeline \
                     -Dsonar.sources=/usr/src
-                '''
+                """
+                }
             }
-        }
+        } 
 
         stage('Snyk Scan') {
             steps {
