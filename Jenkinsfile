@@ -34,16 +34,25 @@ pipeline {
         stage('Snyk Scan') {
             steps {
                 script {
-                    def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
-                    sh "echo 'Jenkins workspace: ${workspacePath}'"
-                    sh "ls -l ${workspacePath}/app"
-                    sh 'docker pull snyk/snyk-cli:docker'
-                    sh """
-                        docker run --rm \
-                        -e SNYK_TOKEN=$SNYK_TOKEN \
-                        -v ${WORKSPACE}/app:/project \
-                        snyk/snyk-cli:docker test --file=/project/package.json
-                    """
+                    // Χρησιμοποιούμε withCredentials για ασφαλή χειρισμό του token
+                    withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
+                        def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
+
+                        // Debug: Τι υπάρχει στο workspace
+                        sh "echo 'Jenkins workspace: ${workspacePath}'"
+                        sh "ls -l ${workspacePath}/app"
+
+                        // Pull του Snyk image
+                        sh 'docker pull snyk/snyk-cli:docker'
+
+                        // Εκτέλεση Snyk scan
+                        sh """
+                    docker run --rm \
+                    -e SNYK_TOKEN=${SNYK_TOKEN} \
+                    -v ${workspacePath}/app:/project \
+                    snyk/snyk-cli:docker test --file=/project/package.json
+                """
+                    }
                 }
             }
         }
