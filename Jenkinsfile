@@ -35,16 +35,13 @@ pipeline {
             steps {
                 script {
                     def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
-
                     sh "echo 'Jenkins workspace: ${workspacePath}'"
                     sh "ls -l ${workspacePath}/app"
-
                     sh 'docker pull snyk/snyk-cli:docker'
-
                     sh """
                         docker run --rm \
                         -e SNYK_TOKEN=$SNYK_TOKEN \
-                        -v ${WORKSPACE}/app:/project
+                        -v ${WORKSPACE}/app:/project \
                         snyk/snyk-cli:docker test --file=/project/package.json
                     """
                 }
