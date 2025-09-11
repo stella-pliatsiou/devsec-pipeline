@@ -13,24 +13,18 @@ pipeline {
             }
         }
 
-        stage('SonarQube Scan') {
+       stage('SonarQube Scan') {
             steps {
                 docker.image('sonarsource/sonar-scanner-cli').inside {
-                script {
-                    def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
-                    sh """
-                        docker run --rm \
-                        --add-host=host.docker.internal:host-gateway \
-                        -e SONAR_HOST_URL=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
-                        -e SONAR_TOKEN=${SNYK_TOKEN} \
-                        -v ${workspacePath}:/usr/src \
-                        pwdsonarsource/sonar-scanner-cli \
-                        -Dsonar.projectKey=devsec-pipeline \
-                        -Dsonar.sources=/usr/src
-                    """
+                    sh '''
+                    sonar-scanner \
+                      -Dsonar.projectKey=devsec-pipeline \
+                      -Dsonar.sources=/usr/src \
+                      -Dsonar.host.url=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
+                      -Dsonar.login=admin \
+                      -Dsonar.password=admin
+                    '''
                 }
-            }
-
             }
         }
 
