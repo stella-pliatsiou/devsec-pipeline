@@ -38,10 +38,6 @@ pipeline {
                         withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
                         def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
 
-                        // Debug: Τι υπάρχει στο workspace
-                        sh "echo 'Jenkins workspace: ${workspacePath}'"
-                        sh "ls -l ${workspacePath}/app"
-
                         // Pull του Snyk image
                         sh 'docker pull snyk/snyk-cli:docker'
 
