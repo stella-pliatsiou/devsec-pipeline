@@ -35,7 +35,7 @@ pipeline {
             steps {
                 script {
                     // Χρησιμοποιούμε withCredentials για ασφαλή χειρισμό του token
-                    withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
+                        withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
                         def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
 
                         // Debug: Τι υπάρχει στο workspace
@@ -49,7 +49,7 @@ pipeline {
                         sh '''
                         docker run --rm \
                             -e SNYK_TOKEN=${SNYK_TOKEN} \
-                            -v ${WORKSPACE}/app:/project \
+                            -v /var/jenkins_home/workspace/devsec-pipeline/app:/project \
                             snyk/snyk-cli:docker test --file=/project/package.json
                         '''
                     }
