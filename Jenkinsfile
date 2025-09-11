@@ -46,12 +46,12 @@ pipeline {
                         sh 'docker pull snyk/snyk-cli:docker'
 
                         // Εκτέλεση Snyk scan
-                        sh """
-                    docker run --rm \
-                    -e SNYK_TOKEN=${SNYK_TOKEN} \
-                    -v /var/jenkins_home/workspace/Pipeline/app \
-                    snyk/snyk-cli:docker test --file=/app/package.json
-                    """
+                        sh '''
+                        docker run --rm \
+                            -e SNYK_TOKEN=${SNYK_TOKEN} \
+                            -v ${WORKSPACE}/app:/project \
+                            snyk/snyk-cli:docker test --file=/project/package.json
+                        '''
                     }
                 }
             }
