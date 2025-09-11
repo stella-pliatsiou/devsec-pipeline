@@ -13,7 +13,7 @@ pipeline {
             }
         }
 
-       stage('SonarQube Scan') {
+        stage('SonarQube Scan') {
             steps {
                 docker.image('sonarsource/sonar-scanner-cli').inside {
                     sh '''
