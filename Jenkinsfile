@@ -15,6 +15,7 @@ pipeline {
 
         stage('SonarQube Scan') {
             steps {
+                docker.image('sonarsource/sonar-scanner-cli').inside {
                 script {
                     def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
                     sh """
@@ -23,11 +24,13 @@ pipeline {
                         -e SONAR_HOST_URL=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
                         -e SONAR_TOKEN=${SNYK_TOKEN} \
                         -v ${workspacePath}:/usr/src \
-                        sonarsource/sonar-scanner-cli \
+                        pwdsonarsource/sonar-scanner-cli \
                         -Dsonar.projectKey=devsec-pipeline \
                         -Dsonar.sources=/usr/src
                     """
                 }
+            }
+
             }
         }
 
