@@ -39,6 +39,8 @@ pipeline {
 
                         // Εκτέλεση Snyk scan
                         sh '''
+                        echo "Checking if package.json exists:"
+                        ls -l /project
                         docker run --rm \
                             -e SNYK_TOKEN=${SNYK_TOKEN} \
                             -v /var/jenkins_home/workspace/devsec-pipeline/app \
