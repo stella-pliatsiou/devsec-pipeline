@@ -7,7 +7,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -18,7 +17,7 @@ pipeline {
             steps {
                 script {
                     def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
-                sh """
+                    sh """
                     docker run --rm \
                     --add-host=host.docker.internal:host-gateway \
                     -e SONAR_HOST_URL=http://host.docker.internal:9000 \
@@ -30,73 +29,73 @@ pipeline {
                 """
                 }
             }
-        } 
+        }
 
         stage('Snyk Scan') {
             steps {
                 script {
-                    // Εκτύπωση του workspace για να δούμε που βρίσκεται το package.json
-                    sh 'echo "Jenkins workspace: $WORKSPACE"'
-                    sh 'ls -l $WORKSPACE/app'
+                    def workspacePath = env.WORKSPACE.replaceAll('\\\\', '/')
 
-                    // Pull το τελευταίο Snyk image
+                    // Debug: δείξε τι υπάρχει στο workspace
+                    sh "echo 'Jenkins workspace: ${workspacePath}'"
+                    sh "ls -l ${workspacePath}/app"
+
+                    // Pull το Snyk image
                     sh 'docker pull snyk/snyk-cli:docker'
 
                     // Εκτέλεση Snyk scan
                     sh """
-                        docker run --rm \
-                        -e SNYK_TOKEN=85cca7e0-a75e-487d-afbf-233fbe192e64 \
-                        -v /var/jenkins_home/workspace/Pipeline/app:/project \
-                        snyk/snyk-cli:docker sh
-                        snyk/snyk-cli:docker test --file=/project/package.json
-                     """
-        }
-    }
-}
+                docker run --rm \
+                -e SNYK_TOKEN=$SNYK_TOKEN \
+                -v ${workspacePath}/app:/project \
+                snyk/snyk-cli:docker test --file=/project/package.json
+            """
+                }
+            }
 
-
-        stage('Semgrep Scan') {
-            steps {
-                sh '''
+            stage('Semgrep Scan') {
+                steps {
+                    sh '''
                     docker run --rm \
                     -v $PWD:/src \
                     returntocorp/semgrep semgrep --config=p/ci /src
                 '''
+                }
             }
-        }
 
-        stage('TruffleHog Scan') {
-            steps {
-                sh '''
+            stage('TruffleHog Scan') {
+                steps {
+                    sh '''
                     docker run --rm \
                     -v $PWD:/repo \
                     trufflesecurity/trufflehog git https://github.com/stella-pliatsiou/devsec-pipeline.git
                 '''
+                }
             }
-        }
 
-        stage('ZAP Scan') {
-            steps {
-                sh '''
+            stage('ZAP Scan') {
+                steps {
+                    sh '''
                     docker run --rm \
                     -v $PWD:/zap/wrk \
                     -t owasp/zap2docker-weekly zap-baseline.py \
                     -t http://host.docker.internal:8000 \
                     -r zap_report.html
                 '''
+                }
             }
         }
-    }
 
-    post {
-        always {
-            archiveArtifacts artifacts: '**/zap_report.html', allowEmptyArchive: true
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
+        post {
+            always {
+                archiveArtifacts artifacts: '**/zap_report.html', allowEmptyArchive: true
+            }
+            success {
+                echo 'Pipeline completed successfully!'
+            }
+            failure {
+                echo 'Pipeline failed!'
+            }
         }
     }
 }
