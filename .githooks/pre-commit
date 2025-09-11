@@ -1,8 +1,17 @@
 #!/bin/bash
-echo "Running pre-commit hook..."
-trufflehog git file://. --only-verified
+
+echo "Running pre-commit security checks..."
+
+# Static analysis με Semgrep (προαιρετικά Snyk CLI αν θες)
+docker run --rm -v $(pwd):/app returntocorp/semgrep semgrep --config=p/security-audit /app
+
+# Έλεγχος για τυχαία passwords / tokens
+docker run --rm -v $(pwd):/repo trufflesecurity/trufflehog filesystem --path=/repo
+
+# Αν κάποιος έλεγχος αποτύχει, ακύρωσε το commit
 if [ $? -ne 0 ]; then
-  echo "Trufflehog found secrets! Commit rejected."
+  echo "Security checks failed. Commit aborted!"
   exit 1
 fi
-echo "Pre-commit checks passed."
+
+echo "Pre-commit checks passed!"

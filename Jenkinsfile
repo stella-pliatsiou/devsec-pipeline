@@ -69,28 +69,31 @@ pipeline {
             }
         }
 
+        stage('Start App for Dynamic Analysis') {
+            steps {
+                sh 'node app.js &'
+            }
+        }
+
         stage('ZAP Scan') {
             steps {
                 sh '''
-                    docker run --rm \
-                    -v $PWD:/zap/wrk \
-                    -t owasp/zap2docker-weekly zap-baseline.py \
-                    -t http://host.docker.internal:8000 \
-                    -r zap_report.html
+                # ZAP baseline scan
+                docker run --rm -v $WORKSPACE:/zap/wrk:rw owasp/zap2docker-stable zap-baseline.py -t http://host.docker.internal:3000 -r zap_report.html
+
+                # SQLmap example
+                docker run --rm --network host sqlmapproject/sqlmap -u "http://host.docker.internal:3000/user?id=1" --batch
+
+                # Nmap example
+                docker run --rm --network host instrumentisto/nmap -p 3000 host.docker.internal
                 '''
             }
         }
     }
 
-    post {
-        always {
-            archiveArtifacts artifacts: '**/zap_report.html', allowEmptyArchive: true
+    stage('Reports') {
+            steps {
+                sh 'echo "Check console logs and generated reports for vulnerabilities"'
+            }
         }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-    }
 }
