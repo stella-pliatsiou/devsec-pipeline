@@ -49,9 +49,9 @@ pipeline {
                         sh """
                     docker run --rm \
                     -e SNYK_TOKEN=${SNYK_TOKEN} \
-                    -v ${workspacePath}/app \
-                    snyk/snyk-cli:docker test --file=/package.json
-                """
+                    -v /var/jenkins_home/workspace/Pipeline/app:/project \
+                    snyk/snyk-cli:docker test --file=/project/package.json
+                    """
                     }
                 }
             }
