@@ -15,15 +15,17 @@ pipeline {
 
         stage('SonarQube Scan') {
             steps {
-                docker.image('sonarsource/sonar-scanner-cli').inside {
-                    sh '''
-                    sonar-scanner \
-                      -Dsonar.projectKey=devsec-pipeline \
-                      -Dsonar.sources=/usr/src \
-                      -Dsonar.host.url=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
-                      -Dsonar.login=admin \
-                      -Dsonar.password=admin
-                    '''
+                script { // <-- χρειάζεται script block
+                    docker.image('sonarsource/sonar-scanner-cli').inside("-v ${env.WORKSPACE}:/usr/src") {
+                        sh '''
+                sonar-scanner \
+                  -Dsonar.projectKey=devsec-pipeline \
+                  -Dsonar.sources=/usr/src \
+                  -Dsonar.host.url=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
+                  -Dsonar.login=$SONAR_USER \
+                  -Dsonar.password=$SONAR_PASS
+                '''
+                    }
                 }
             }
         }
