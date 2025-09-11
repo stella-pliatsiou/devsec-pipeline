@@ -37,7 +37,7 @@ services:
       - sonarqube
     volumes:
       - ./app:/usr/src
-    entrypoint: >
+    entrypoint: 
       sonar-scanner
       -Dsonar.projectKey=devsec-pipeline
       -Dsonar.sources=/usr/src
