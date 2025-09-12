@@ -23,7 +23,9 @@ pipeline {
                   -Dsonar.sources=/usr/src \
                   -Dsonar.host.url=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
                   -Dsonar.login=$SONAR_USER \
-                  -Dsonar.password=$SONAR_PASS
+                  -Dsonar.password=$SONAR_PASS \
+                  -Dsonar.organization=stella-pliatsiou \
+                  -Dsonar.projectKey=stella-pliatsiou_devsec-pipeline
                 '''
                     }
                 }
@@ -89,13 +91,11 @@ pipeline {
                 '''
             }
         }
-    
 
         stage('Reports') {
             steps {
                 archiveArtifacts artifacts: '**/zap_report.html', allowEmptyArchive: true
             }
         }
+    }
 }
-}
-
