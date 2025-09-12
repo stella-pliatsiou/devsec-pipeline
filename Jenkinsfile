@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        SNYK_TOKEN = credentials('SNYK_TOKEN') // Jenkins credential
-        SONAR_TOKEN = credentials('SONAR_TOKEN') // Jenkins credential
+        SNYK_TOKEN = credentials('SNYK_TOKEN') 
+        SONAR_TOKEN = credentials('SONAR_TOKEN') 
     }
 
     stages {
@@ -32,10 +32,8 @@ pipeline {
         stage('Snyk Scan') {
             steps {
                 script {
-                        // Pull του Snyk image
                         sh 'docker pull snyk/snyk-cli:docker'
 
-                        // Εκτέλεση Snyk scan
                         sh '''
                         echo "Checking if package.json exists:"
                         ls -l /project
