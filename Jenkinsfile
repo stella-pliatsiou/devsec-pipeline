@@ -16,7 +16,7 @@ pipeline {
         stage('SonarQube Scan') {
             steps {
                  sh '''
-                docker run --rm \
+                    docker run --rm \
                     -e SONAR_TOKEN=$SONAR_TOKEN \
                     -v $WORKSPACE:/usr/src \
                     sonarsource/sonar-scanner-cli \
