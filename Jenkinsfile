@@ -93,7 +93,7 @@ pipeline {
 
     stage('Reports') {
             steps {
-                sh 'echo "Check console logs and generated reports for vulnerabilities"'
+                archiveArtifacts artifacts: '**/zap_report.html', allowEmptyArchive: true
             }
         }
 }
