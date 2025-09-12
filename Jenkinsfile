@@ -15,8 +15,8 @@ pipeline {
 
         stage('SonarQube Scan') {
             steps {
-                 sh '''
-                    docker run --rm \
+                sh '''
+                docker run --rm \
                     -e SONAR_TOKEN=$SONAR_TOKEN \
                     -v $WORKSPACE:/usr/src \
                     sonarsource/sonar-scanner-cli \
@@ -25,10 +25,9 @@ pipeline {
                     -Dsonar.host.url=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev/ \
                     -Dsonar.login=$SONAR_TOKEN
                 '''
-                    }
-                }
             }
         }
+    
 
         stage('Snyk Scan') {
             steps {
