@@ -91,7 +91,7 @@ pipeline {
         }
     }
 
-    stage('Reports') {
+        stage('Reports') {
             steps {
                 archiveArtifacts artifacts: '**/zap_report.html', allowEmptyArchive: true
             }
