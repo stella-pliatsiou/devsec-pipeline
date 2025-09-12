@@ -43,7 +43,7 @@ services:
       sonar-scanner
       -Dsonar.projectKey=devsec-pipeline
       -Dsonar.sources=/usr/src
-      -Dsonar.host.url=http://sonarqube:9000
+      -Dsonar.host.url=https://vigilant-waddle-p9v9jqr9vgpcrw4-9000.app.github.dev
       -Dsonar.login=admin
       -Dsonar.password=admin
     networks:

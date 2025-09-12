@@ -19,7 +19,7 @@ const connection = mysql.createConnection({
 // SQL Injection vulnerable route
 app.get('/user', (req, res) => {
   const id = req.query.id;
-  const query = `SELECT * FROM users WHERE id = '${id}'`; // Τρωτό
+  const query = `SELECT * FROM users WHERE id = '${id}'`; 
   connection.query(query, (err, results) => {
     if(err) return res.status(500).send(err);
     res.send(results);
